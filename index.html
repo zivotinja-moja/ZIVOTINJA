@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <title>ŽIVOTINjARI Emoji Game</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ffcc00">
+<link rel="icon" href="icon-192.png">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4, #fbc2eb, #a18cd1);
+      background-size: 400% 400%;
+      animation: gradientBG 10s ease infinite;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      margin: 10px;
+      color: #fff;
+      text-shadow: 2px 2px 4px #000;
+    }
+
+    #emojiSelection {
+      display: grid;
+      grid-template-columns: repeat(5, 60px);
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    #emojiSelection button {
+      font-size: 28px;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      padding: 10px;
+      background: rgba(255,255,255,0.8);
+      transition: transform 0.2s;
+    }
+
+    #emojiSelection button:hover {
+      transform: scale(1.2);
+      background: #fff;
+    }
+
+    #mainScreen {
+      display: none;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      margin-top: 40px;
+      gap: 60px;
+      width: 100%;
+    }
+
+    #animalDisplay {
+      font-size: 120px;
+      transition: transform 0.3s;
+      position: relative;
+    }
+
+    .btnColumn {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .btnColumn button {
+      font-size: 22px;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s;
+    }
+
+    .btnColumn button:hover {
+      transform: scale(1.1);
+    }
+
+    #feedBtn { background: #ffb347; }
+    #washBtn { background: #87ceeb; }
+    #sleepBtn { background: #d8bfd8; }
+    #restartBtn { background: #ff6961; }
+
+    #points {
+      font-size: 22px;
+      color: #fff;
+      text-shadow: 1px 1px 3px #000;
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    /* Animacije hrane i kiše */
+    .falling {
+      position: absolute;
+      animation: fall 2s linear forwards;
+      pointer-events: none;
+    }
+
+    @keyframes fall {
+      from { top: -50px; opacity: 1; }
+      to { top: 200px; opacity: 0; }
+    }
+
+    .raindrop {
+      position: absolute;
+      font-size: 20px;
+      animation: rain 1.5s linear forwards;
+    }
+
+    @keyframes rain {
+      from { top: -30px; opacity: 1; }
+      to { top: 200px; opacity: 0; }
+    }
+
+    .sleeping {
+      opacity: 0.6;
+      filter: blur(1px);
+    }
+  </style>
+</head>
+<body>
+  <h1>🐾 ŽIVOTINjARI Emoji Game 🐾</h1>
+
+  <div id="emojiSelection"></div>
+
+  <div id="mainScreen">
+    <div id="animalDisplay">🐶</div>
+    <div class="btnColumn">
+      <button id="feedBtn">🍖 Nahrani</button>
+      <button id="washBtn">🚿 Tuširaj</button>
+      <button id="sleepBtn">😴 Uspavaj</button>
+      <button id="restartBtn">🔄 Restart</button>
+      <div id="points">Poeni: 0</div>
+    </div>
+  </div>
+
+  <script>
+    const emojis = [
+      "🐶","🐱","🦁","🐴","🐰","🐼","🐯","🐻","🐦","🐠",
+      "🐸","🐵","🦄","🐤","🐢","🦖","🐧","🐺","🐝","🐙"
+    ];
+
+    const emojiSelection = document.getElementById("emojiSelection");
+    const mainScreen = document.getElementById("mainScreen");
+    const animalDisplay = document.getElementById("animalDisplay");
+    const pointsText = document.getElementById("points");
+
+    const feedBtn = document.getElementById("feedBtn");
+    const washBtn = document.getElementById("washBtn");
+    const sleepBtn = document.getElementById("sleepBtn");
+    const restartBtn = document.getElementById("restartBtn");
+
+    let points = 0;
+    let sleepInterval = null;
+
+    // Dodavanje emoji dugmadi
+    emojis.forEach(e => {
+      const btn = document.createElement("button");
+      btn.textContent = e;
+      btn.onclick = () => startGame(e);
+      emojiSelection.appendChild(btn);
+    });
+
+    function startGame(e) {
+      animalDisplay.textContent = e;
+      emojiSelection.style.display = "none";
+      mainScreen.style.display = "flex";
+    }
+
+    function updatePoints() {
+      pointsText.textContent = "Poeni: " + points;
+    }
+
+    // Animacija hrane
+    function feed() {
+      points += 1;
+      updatePoints();
+
+      const food = document.createElement("div");
+      food.classList.add("falling");
+      food.textContent = "🍖";
+      food.style.left = "0px";
+      animalDisplay.appendChild(food);
+      setTimeout(() => food.remove(), 2000);
+    }
+
+    // Animacija kiše
+    function wash() {
+      points += 2;
+      updatePoints();
+
+      for (let i = 0; i < 6; i++) {
+        const drop = document.createElement("div");
+        drop.classList.add("raindrop");
+        drop.textContent = "💧";
+        drop.style.left = (Math.random() * 60 - 30) + "px";
+        animalDisplay.appendChild(drop);
+        setTimeout(() => drop.remove(), 1500);
+      }
+    }
+
+    // Spavanje
+    function sleep() {
+      if (!sleepInterval) {
+        animalDisplay.classList.add("sleeping");
+        sleepInterval = setInterval(() => {
+          points += 5;
+          updatePoints();
+        }, 10000); // svakih 10 sekundi +5
+      }
+    }
+
+    // Restart
+    function restartGame() {
+      points = 0;
+      updatePoints();
+      animalDisplay.classList.remove("sleeping");
+      clearInterval(sleepInterval);
+      sleepInterval = null;
+      mainScreen.style.display = "none";
+      emojiSelection.style.display = "grid";
+    }
+
+    feedBtn.onclick = feed;
+    washBtn.onclick = wash;
+    sleepBtn.onclick = sleep;
+    restartBtn.onclick = restartGame;
+  </script>
+</body>
+</html>
